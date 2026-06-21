@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Paletto — Color Palette Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0A0A0B;
+  --surface: #141415;
+  --surface2: #1E1E20;
+  --border: rgba(255,255,255,0.07);
+  --border-hover: rgba(255,255,255,0.15);
+  --text: #F0F0F0;
+  --muted: rgba(240,240,240,0.38);
+  --muted2: rgba(240,240,240,0.6);
+  --radius: 12px;
+  --radius-lg: 18px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* ── HEADER ── */
+header {
+  padding: 1.5rem 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 10;
+}
+
+.logo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-live, #6C63FF);
+  transition: background 0.6s ease;
+  flex-shrink: 0;
+}
+
+.meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-align: right;
+  line-height: 1.7;
+}
+.meta strong { color: var(--muted2); font-weight: 500; display: block; }
+
+/* ── HERO ── */
+.hero {
+  padding: 3rem 2.5rem 2rem;
+  position: relative;
+}
+
+.hero-eyebrow {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+}
+
+.hero-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  color: var(--text);
+  margin-bottom: 0.4rem;
+}
+
+.hero-title .accent-word {
+  color: var(--accent-live, #6C63FF);
+  transition: color 0.6s ease;
+}
+
+.hero-sub {
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.6;
+  max-width: 420px;
+  margin-top: 0.75rem;
+}
+
+/* ── CONTROLS ── */
+.controls {
+  padding: 1.5rem 2.5rem 0;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.color-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 8px 16px 8px 8px;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.15s;
+}
+.color-pill:hover { border-color: var(--border-hover); }
+.color-pill input[type="color"] {
+  position: absolute;
+  opacity: 0;
+  width: 100%; height: 100%;
+  left: 0; top: 0;
+  cursor: pointer;
+}
+
+.pill-swatch {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.12);
+  flex-shrink: 0;
+  transition: background 0.3s ease;
+}
+
+.pill-hex {
+  font-family: 'Space Grotesk', monospace;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+  min-width: 60px;
+}
+
+.hex-text-input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 9px 18px;
+  color: var(--text);
+  font-family: 'Space Grotesk', monospace;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  width: 130px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.hex-text-input:focus { border-color: var(--border-hover); }
+.hex-text-input::placeholder { color: var(--muted); }
+
+.harmony-select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 9px 32px 9px 18px;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.82rem;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  transition: border-color 0.15s;
+}
+.harmony-select:focus { border-color: var(--border-hover); }
+
+.random-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 9px 16px;
+  color: var(--muted2);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.random-btn:hover { color: var(--text); border-color: var(--border-hover); }
+
+.generate-btn {
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+  border-radius: 100px;
+  padding: 9px 24px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  letter-spacing: -0.01em;
+}
+.generate-btn:hover { opacity: 0.88; }
+.generate-btn:active { transform: scale(0.97); }
+
+/* ── PALETTE ── */
+.palette-wrap {
+  padding: 2rem 2.5rem;
+  flex: 1;
+}
+
+.palette-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.palette-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── SWATCH CARDS ── */
+.swatches-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 900px) { .swatches-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 560px) { .swatches-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.swatch-card {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  position: relative;
+  opacity: 0;
+  transform: translateY(16px);
+}
+.swatch-card.revealed {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+.swatch-card:hover { transform: translateY(-4px) scale(1.02); }
+.swatch-card:active { transform: scale(0.97); }
+
+.swatch-block {
+  height: 200px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 14px;
+}
+
+.swatch-role-tag {
+  font-size: 0.62rem;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 100px;
+  background: rgba(0,0,0,0.2);
+  display: inline-block;
+  align-self: flex-start;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.swatch-copy-hint {
+  font-size: 0.68rem;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  opacity: 0;
+  transition: opacity 0.15s;
+  align-self: flex-end;
+  padding: 4px 9px;
+  border-radius: 100px;
+  background: rgba(0,0,0,0.2);
+  backdrop-filter: blur(6px);
+}
+.swatch-card:hover .swatch-copy-hint { opacity: 1; }
+
+.swatch-footer {
+  background: var(--surface2);
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.swatch-hex-text {
+  font-family: 'Space Grotesk', monospace;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.swatch-rgb-text {
+  font-size: 0.65rem;
+  color: var(--muted);
+  font-family: 'Inter', sans-serif;
+  margin-top: 1px;
+}
+
+.swatch-usage-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── SHADE STRIP ── */
+.shade-strip-wrap {
+  margin-bottom: 2rem;
+}
+
+.shade-strip-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-family: 'Space Grotesk', sans-serif;
+  margin-bottom: 10px;
+}
+
+.shade-strip {
+  display: flex;
+  gap: 4px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.shade-block {
+  flex: 1;
+  height: 48px;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.15s;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 4px;
+}
+.shade-block:hover { transform: scaleY(1.08); transform-origin: bottom; }
+
+.shade-label {
+  font-size: 0.55rem;
+  font-family: 'Space Grotesk', monospace;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.shade-block:hover .shade-label { opacity: 1; }
+
+/* ── EXPORT PANEL ── */
+.export-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.export-panel-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 1rem;
+}
+
+.export-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.export-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.export-card:hover { border-color: var(--border-hover); background: rgba(255,255,255,0.04); }
+.export-card:active { transform: scale(0.98); }
+
+.export-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.export-info { flex: 1; }
+.export-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.export-desc {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 1px;
+}
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center;
+  padding: 5rem 2rem;
+  color: var(--muted);
+}
+.empty-circle {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  margin: 0 auto 1.5rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem;
+}
+.empty-state p { font-size: 0.88rem; line-height: 1.7; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  background: var(--text);
+  color: var(--bg);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 9px 20px;
+  border-radius: 100px;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+  z-index: 999;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── FOOTER ── */
+footer {
+  padding: 1.25rem 2.5rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.dh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 16px;
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+.dh-btn:hover { background: rgba(255,255,255,0.09); border-color: var(--border-hover); }
+.dh-pulse {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #5DCAA5;
+  flex-shrink: 0;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.footer-meta { font-size: 0.72rem; color: var(--muted); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  header, .hero, .controls, .palette-wrap, footer { padding-left: 1.25rem; padding-right: 1.25rem; }
+  .controls { gap: 8px; }
+  .hex-text-input, .harmony-select { width: 100%; border-radius: 10px; }
+  .color-pill { border-radius: 10px; }
+  .random-btn, .generate-btn { width: 100%; justify-content: center; border-radius: 10px; }
+  .meta { display: none; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot" id="logoDot"></div>
+    Paletto
+  </div>
+  <div class="meta">
+    <strong>Akash Mallik</strong>
+    akashmallik11@gmail.com
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-eyebrow">Color palette generator</div>
+  <h1 class="hero-title">
+    Beautiful palettes,<br/>
+    <span class="accent-word" id="accentWord">instantly</span>.
+  </h1>
+  <p class="hero-sub">Pick a base color, choose a harmony rule, and export directly to Figma, CSS, or Adobe.</p>
+</div>
+
+<div class="controls">
+  <div class="color-pill" id="pickerWrap">
+    <div class="pill-swatch" id="pillSwatch" style="background:#6C63FF;"></div>
+    <span class="pill-hex" id="pillHex">#6C63FF</span>
+    <input type="color" id="colorPicker" value="#6C63FF" />
+  </div>
+
+  <input type="text" class="hex-text-input" id="hexInput" placeholder="#6C63FF" maxlength="7" />
+
+  <select class="harmony-select" id="harmonySelect">
+    <option value="complementary">Complementary</option>
+    <option value="analogous">Analogous</option>
+    <option value="triadic">Triadic</option>
+    <option value="split">Split Complementary</option>
+    <option value="tetradic">Tetradic</option>
+    <option value="monochromatic">Monochromatic</option>
+  </select>
+
+  <button class="random-btn" onclick="randomColor()">⚄ Random</button>
+  <button class="generate-btn" onclick="generate()">Generate →</button>
+</div>
+
+<div class="palette-wrap">
+  <div id="emptyState" class="empty-state">
+    <div class="empty-circle">◐</div>
+    <p>Your palette will appear here.<br/>Pick a base color above and hit Generate.</p>
+  </div>
+
+  <div id="paletteContent" style="display:none;">
+    <div class="palette-meta">
+      <span class="palette-label" id="paletteLabel"></span>
+    </div>
+
+    <div class="swatches-grid" id="swatchesGrid"></div>
+
+    <div class="shade-strip-wrap" id="shadeStripWrap">
+      <div class="shade-strip-label">Tint → Shade scale</div>
+      <div class="shade-strip" id="shadeStrip"></div>
+    </div>
+
+    <div class="export-panel">
+      <div class="export-panel-title">Export your palette</div>
+      <div class="export-grid">
+        <div class="export-card" onclick="exportFigma()">
+          <div class="export-icon" style="background:rgba(161,90,255,0.15);">🎨</div>
+          <div class="export-info">
+            <div class="export-name">Figma JSON</div>
+            <div class="export-desc">Paste into "Import Color Styles" plugin</div>
+          </div>
+        </div>
+        <div class="export-card" onclick="exportCSS()">
+          <div class="export-icon" style="background:rgba(92,180,255,0.15);">{ }</div>
+          <div class="export-info">
+            <div class="export-name">CSS Variables</div>
+            <div class="export-desc">Ready to paste into your stylesheet</div>
+          </div>
+        </div>
+        <div class="export-card" onclick="exportASE()">
+          <div class="export-icon" style="background:rgba(255,100,80,0.15);">Ai</div>
+          <div class="export-info">
+            <div class="export-name">ASE File</div>
+            <div class="export-desc">Opens in Illustrator, Photoshop, XD</div>
+          </div>
+        </div>
+        <div class="export-card" onclick="exportHex()">
+          <div class="export-icon" style="background:rgba(80,220,140,0.15);">#</div>
+          <div class="export-info">
+            <div class="export-name">Hex Codes</div>
+            <div class="export-desc">Plain list, paste anywhere</div>
+          </div>
+        </div>
+        <div class="export-card" onclick="exportTailwind()">
+          <div class="export-icon" style="background:rgba(56,189,248,0.15);">tw</div>
+          <div class="export-info">
+            <div class="export-name">Tailwind Config</div>
+            <div class="export-desc">Drop into tailwind.config.js colors</div>
+          </div>
+        </div>
+        <div class="export-card" onclick="exportSwiftUI()">
+          <div class="export-icon" style="background:rgba(255,160,60,0.15);">◈</div>
+          <div class="export-info">
+            <div class="export-name">SwiftUI</div>
+            <div class="export-desc">Color constants for iOS / macOS dev</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <a class="dh-btn" href="https://digitalheroesco.com" target="_blank" rel="noopener">
+    <span class="dh-pulse"></span>
+    Built for Digital Heroes
+  </a>
+  <span class="footer-meta">Paletto by Akash Mallik &mdash; akashmallik11@gmail.com</span>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const picker = document.getElementById('colorPicker');
+const hexInput = document.getElementById('hexInput');
+const pillSwatch = document.getElementById('pillSwatch');
+const pillHex = document.getElementById('pillHex');
+const logoDot = document.getElementById('logoDot');
+const accentWord = document.getElementById('accentWord');
+
+let currentPalette = [];
+let baseHex = '#6C63FF';
+
+picker.addEventListener('input', () => {
+  const v = picker.value.toUpperCase();
+  syncColor(v);
+});
+
+hexInput.addEventListener('input', () => {
+  let v = hexInput.value.trim();
+  if (!v.startsWith('#')) v = '#' + v;
+  if (/^#[0-9A-Fa-f]{6}$/.test(v)) {
+    picker.value = v;
+    syncColor(v.toUpperCase());
+  }
+});
+
+function syncColor(hex) {
+  pillSwatch.style.background = hex;
+  pillHex.textContent = hex;
+  hexInput.value = hex;
+  baseHex = hex;
+  logoDot.style.background = hex;
+  accentWord.style.color = hex;
+  document.documentElement.style.setProperty('--accent-live', hex);
+}
+
+function randomColor() {
+  const hex = '#' + Math.floor(Math.random()*0xFFFFFF).toString(16).padStart(6,'0').toUpperCase();
+  picker.value = hex;
+  syncColor(hex);
+  generate();
+}
+
+function hexToHsl(hex) {
+  let r = parseInt(hex.slice(1,3),16)/255;
+  let g = parseInt(hex.slice(3,5),16)/255;
+  let b = parseInt(hex.slice(5,7),16)/255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b);
+  let h, s, l = (max+min)/2;
+  if (max === min) { h = s = 0; }
+  else {
+    const d = max - min;
+    s = l > 0.5 ? d/(2-max-min) : d/(max+min);
+    switch(max) {
+      case r: h = ((g-b)/d + (g<b?6:0))/6; break;
+      case g: h = ((b-r)/d + 2)/6; break;
+      case b: h = ((r-g)/d + 4)/6; break;
+    }
+  }
+  return [Math.round(h*360), Math.round(s*100), Math.round(l*100)];
+}
+
+function hslToHex(h, s, l) {
+  h = ((h%360)+360)%360;
+  s = Math.max(0, Math.min(100,s));
+  l = Math.max(3, Math.min(97,l));
+  s/=100; l/=100;
+  const a = s * Math.min(l, 1-l);
+  const f = n => {
+    const k = (n+h/30)%12;
+    const c = l - a*Math.max(Math.min(k-3,9-k,1),-1);
+    return Math.round(255*c).toString(16).padStart(2,'0');
+  };
+  return ('#'+f(0)+f(8)+f(4)).toUpperCase();
+}
+
+function hexToRgb(hex) {
+  return [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)];
+}
+
+function rgbToFloat(r,g,b) { return [r/255, g/255, b/255]; }
+
+function luminance(hex) {
+  const [r,g,b] = hexToRgb(hex);
+  return (0.299*r + 0.587*g + 0.114*b)/255;
+}
+
+function textOn(hex) {
+  return luminance(hex) > 0.52 ? 'rgba(0,0,0,0.72)' : 'rgba(255,255,255,0.88)';
+}
+
+const ROLES = {
+  complementary: ['Base','Tint','Shade','Complement','Comp Tint'],
+  analogous: ['Left 2','Left 1','Base','Right 1','Right 2'],
+  triadic: ['Base','Tint','Triadic 1','Triadic 2','Accent'],
+  split: ['Base','Split 1','Split 2','Split Tint 1','Split Tint 2'],
+  tetradic: ['Base','Quarter 1','Complement','Quarter 3','Neutral'],
+  monochromatic: ['Lightest','Light','Base','Dark','Darkest'],
+};
+
+function getHarmony(hex, mode) {
+  const [h,s,l] = hexToHsl(hex);
+  const roles = ROLES[mode];
+  let colors;
+  switch(mode) {
+    case 'complementary':
+      colors = [hex, hslToHex(h,s,Math.min(l+20,94)), hslToHex(h,s,Math.max(l-20,6)), hslToHex(h+180,s,l), hslToHex(h+180,s,Math.min(l+18,94))];
+      break;
+    case 'analogous':
+      colors = [hslToHex(h-40,s,l), hslToHex(h-20,s,l), hex, hslToHex(h+20,s,l), hslToHex(h+40,s,l)];
+      break;
+    case 'triadic':
+      colors = [hex, hslToHex(h,s,Math.min(l+18,92)), hslToHex(h+120,s,l), hslToHex(h+240,s,l), hslToHex(h+120,s,Math.min(l+18,92))];
+      break;
+    case 'split':
+      colors = [hex, hslToHex(h+150,s,l), hslToHex(h+210,s,l), hslToHex(h+150,s,Math.min(l+16,92)), hslToHex(h+210,s,Math.min(l+16,92))];
+      break;
+    case 'tetradic':
+      colors = [hex, hslToHex(h+90,s,l), hslToHex(h+180,s,l), hslToHex(h+270,s,l), hslToHex(h,Math.max(s-25,8),Math.min(l+22,92))];
+      break;
+    case 'monochromatic':
+      colors = [hslToHex(h,s,Math.min(l+36,95)), hslToHex(h,s,Math.min(l+18,92)), hex, hslToHex(h,s,Math.max(l-18,6)), hslToHex(h,s,Math.max(l-36,4))];
+      break;
+    default: colors = [hex,hex,hex,hex,hex];
+  }
+  return colors.map((c,i) => ({ hex: c, role: roles[i] }));
+}
+
+function getShadeScale(hex) {
+  const [h,s] = hexToHsl(hex);
+  const stops = [95,87,78,68,57,46,36,26,16,8];
+  return stops.map(l => hslToHex(h, s, l));
+}
+
+function generate() {
+  let hex = hexInput.value.trim() || baseHex;
+  if (!hex.startsWith('#')) hex = '#' + hex;
+  if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) { showToast('Enter a valid hex like #6C63FF'); return; }
+  hex = hex.toUpperCase();
+  syncColor(hex);
+
+  const mode = document.getElementById('harmonySelect').value;
+  const modeLabel = document.getElementById('harmonySelect').options[document.getElementById('harmonySelect').selectedIndex].text;
+  currentPalette = getHarmony(hex, mode);
+
+  document.getElementById('paletteLabel').textContent = modeLabel + ' · 5 colors';
+
+  const grid = document.getElementById('swatchesGrid');
+  grid.innerHTML = '';
+  currentPalette.forEach((item, i) => {
+    const tc = textOn(item.hex);
+    const [r,g,b] = hexToRgb(item.hex);
+    const card = document.createElement('div');
+    card.className = 'swatch-card';
+    card.innerHTML = `
+      <div class="swatch-block" style="background:${item.hex};">
+        <span class="swatch-role-tag" style="color:${tc};">${item.role}</span>
+        <span class="swatch-copy-hint" style="color:${tc};">copy ↗</span>
+      </div>
+      <div class="swatch-footer">
+        <div>
+          <div class="swatch-hex-text">${item.hex}</div>
+          <div class="swatch-rgb-text">rgb(${r}, ${g}, ${b})</div>
+        </div>
+        <div class="swatch-usage-dot" style="background:${item.hex}; border: 1.5px solid rgba(255,255,255,0.15);"></div>
+      </div>
+    `;
+    card.onclick = () => { navigator.clipboard.writeText(item.hex).then(() => showToast(item.hex + ' copied')); };
+    grid.appendChild(card);
+    setTimeout(() => card.classList.add('revealed'), i * 60 + 30);
+  });
+
+  const shadeScale = getShadeScale(hex);
+  const strip = document.getElementById('shadeStrip');
+  strip.innerHTML = '';
+  shadeScale.forEach(c => {
+    const block = document.createElement('div');
+    block.className = 'shade-block';
+    block.style.background = c;
+    const label = document.createElement('div');
+    label.className = 'shade-label';
+    label.textContent = c;
+    label.style.color = textOn(c);
+    block.appendChild(label);
+    block.onclick = () => { navigator.clipboard.writeText(c).then(() => showToast(c + ' copied')); };
+    strip.appendChild(block);
+  });
+
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('paletteContent').style.display = 'block';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1900);
+}
+
+function exportCSS() {
+  const vars = currentPalette.map((c,i) => `  --palette-${i+1}: ${c.hex}; /* ${c.role} */`).join('\n');
+  navigator.clipboard.writeText(`:root {\n${vars}\n}`).then(() => showToast('CSS variables copied'));
+}
+
+function exportFigma() {
+  const obj = {};
+  currentPalette.forEach(c => { obj[c.role] = { value: c.hex, type: 'color' }; });
+  navigator.clipboard.writeText(JSON.stringify(obj, null, 2)).then(() => showToast('Figma JSON copied — paste into "Import Color Styles" plugin'));
+}
+
+function exportHex() {
+  navigator.clipboard.writeText(currentPalette.map(c => c.hex).join('\n')).then(() => showToast('Hex codes copied'));
+}
+
+function exportTailwind() {
+  const lines = currentPalette.map(c => `      '${c.role.toLowerCase().replace(/\s+/g,'-')}': '${c.hex}',`).join('\n');
+  const out = `module.exports = {\n  theme: {\n    extend: {\n      colors: {\n        palette: {\n${lines}\n        },\n      },\n    },\n  },\n}`;
+  navigator.clipboard.writeText(out).then(() => showToast('Tailwind config copied'));
+}
+
+function exportSwiftUI() {
+  const lines = currentPalette.map(c => {
+    const [r,g,b] = hexToRgb(c.hex).map(v => (v/255).toFixed(3));
+    const name = c.role.replace(/\s+/g,'');
+    return `  static let palette${name} = Color(red: ${r}, green: ${g}, blue: ${b})`;
+  }).join('\n');
+  navigator.clipboard.writeText(`extension Color {\n${lines}\n}`).then(() => showToast('SwiftUI colors copied'));
+}
+
+function exportASE() {
+  if (!currentPalette.length) return;
+  const colors = currentPalette;
+  const blockCount = colors.length;
+
+  function writeUint16BE(v) { return [v>>8 & 0xff, v & 0xff]; }
+  function writeUint32BE(v) { return [(v>>24)&0xff,(v>>16)&0xff,(v>>8)&0xff,v&0xff]; }
+  function writeFloat32BE(f) {
+    const buf = new ArrayBuffer(4);
+    new DataView(buf).setFloat32(0, f, false);
+    return Array.from(new Uint8Array(buf));
+  }
+
+  let bytes = [];
+  // Header: ASEF + version 1.0 + block count
+  [0x41,0x53,0x45,0x46].forEach(b => bytes.push(b));
+  bytes.push(...writeUint16BE(1), ...writeUint16BE(0));
+  bytes.push(...writeUint32BE(blockCount));
+
+  colors.forEach(c => {
+    const nameUtf16 = [];
+    const name = c.role;
+    for (let i=0; i<name.length; i++) { nameUtf16.push(...writeUint16BE(name.charCodeAt(i))); }
+    nameUtf16.push(0,0); // null terminator
+
+    const [r,g,b] = hexToRgb(c.hex).map(v => v/255);
+    const colorData = [
+      0x52,0x47,0x42,0x20, // "RGB "
+      ...writeFloat32BE(r),
+      ...writeFloat32BE(g),
+      ...writeFloat32BE(b),
+      ...writeUint16BE(0) // global type
+    ];
+
+    const nameLen = (name.length + 1);
+    const blockLen = 2 + nameLen*2 + colorData.length;
+
+    bytes.push(...writeUint16BE(0x0001)); // color entry block
+    bytes.push(...writeUint32BE(blockLen));
+    bytes.push(...writeUint16BE(nameLen));
+    bytes.push(...nameUtf16);
+    bytes.push(...colorData);
+  });
+
+  const blob = new Blob([new Uint8Array(bytes)], { type: 'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'paletto-palette.ase';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('ASE file downloaded — open in Illustrator / Photoshop');
+}
+
+// Auto-generate on load
+generate();
+</script>
+</body>
+</html>
